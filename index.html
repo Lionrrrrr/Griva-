@@ -1,0 +1,463 @@
+<!doctype html>
+<html lang="ru">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>Грива — лев-метр и батл внешности</title>
+<meta name="description" content="Оцени лицо по шкале луксмакса, узнай % сходства со львом и устрой батл. Фото не покидают твой браузер.">
+<style>
+:root{--bg:#0e0b08;--card:#1a1510;--card2:#221b13;--line:#35291b;--gold:#e8b04a;--gold2:#ffd98a;--txt:#f3ece0;--mut:#a09482;--good:#7bd88f;--bad:#ff7a6b}
+*{box-sizing:border-box}
+body{margin:0;background:radial-gradient(1200px 600px at 50% -10%,#2a1d0c 0,var(--bg) 60%);color:var(--txt);font-family:system-ui,-apple-system,Segoe UI,Roboto,sans-serif;min-height:100vh}
+.wrap{max-width:820px;margin:0 auto;padding:16px 16px 60px}
+header{text-align:center;padding:18px 0 6px}
+h1{margin:0;font-size:34px;letter-spacing:2px;color:var(--gold)}
+h1 span{color:var(--txt)}
+.tag{color:var(--mut);margin:6px 0 0;font-size:14px}
+.tabs{display:flex;gap:8px;margin:18px 0}
+.tab{flex:1;padding:12px;border:1px solid var(--line);background:var(--card);color:var(--txt);border-radius:12px;font-size:16px;cursor:pointer;font-weight:600}
+.tab.on{background:var(--gold);color:#1b1305;border-color:var(--gold)}
+.card{background:var(--card);border:1px solid var(--line);border-radius:16px;padding:16px;margin-bottom:14px}
+.drop{display:flex;flex-direction:column;align-items:center;justify-content:center;gap:6px;border:2px dashed var(--line);border-radius:14px;padding:26px 12px;cursor:pointer;color:var(--mut);text-align:center;transition:.15s}
+.drop:hover{border-color:var(--gold);color:var(--gold2)}
+.drop input{display:none}
+.drop .big{font-size:34px}
+.thumb{width:100%;border-radius:12px;display:block}
+.btn{display:inline-block;background:var(--gold);color:#1b1305;border:0;border-radius:12px;padding:13px 20px;font-size:16px;font-weight:700;cursor:pointer;width:100%;margin-top:10px}
+.btn.sec{background:var(--card2);color:var(--txt);border:1px solid var(--line)}
+.btn:disabled{opacity:.5;cursor:default}
+.row{display:grid;grid-template-columns:1fr 1fr;gap:12px}
+@media(max-width:560px){.row{grid-template-columns:1fr}}
+input[type=text]{width:100%;background:var(--card2);border:1px solid var(--line);color:var(--txt);padding:10px;border-radius:10px;margin-bottom:8px;font-size:15px}
+.note{font-size:12px;color:var(--mut);line-height:1.5}
+.score{text-align:center;padding:6px 0}
+.score .n{font-size:64px;font-weight:800;color:var(--gold);line-height:1}
+.score .n small{font-size:22px;color:var(--mut)}
+.badge{display:inline-block;margin-top:6px;padding:6px 16px;border-radius:999px;font-weight:800;letter-spacing:1px;color:#111}
+.scale{display:flex;height:12px;border-radius:8px;overflow:hidden;margin:16px 0 4px;position:relative}
+.scale div{flex:1}
+.mark{position:absolute;top:-5px;width:4px;height:22px;background:#fff;border-radius:3px;box-shadow:0 0 6px #000}
+.labels{display:flex;font-size:10px;color:var(--mut);text-align:center}
+.labels div{flex:1}
+.lion{display:flex;align-items:center;gap:14px}
+.ring{width:92px;height:92px;border-radius:50%;display:grid;place-items:center;font-size:24px;font-weight:800;color:var(--gold2);flex:none}
+.ring i{width:72px;height:72px;border-radius:50%;background:var(--card);display:grid;place-items:center;font-style:normal}
+.feat{padding:10px 0;border-top:1px solid var(--line)}
+.feat:first-child{border-top:0}
+.fh{display:flex;justify-content:space-between;gap:8px;font-size:14px}
+.fh b{font-weight:600}
+.fh span{color:var(--mut);white-space:nowrap}
+.bar{height:6px;background:var(--card2);border-radius:4px;margin:6px 0;overflow:hidden}
+.bar i{display:block;height:100%;border-radius:4px}
+.fn{font-size:13px;color:var(--mut)}
+h3{margin:4px 0 10px;color:var(--gold2)}
+.winner{text-align:center;padding:10px}
+.winner .t{font-size:26px;font-weight:800;color:var(--gold)}
+.cmp{display:grid;grid-template-columns:1fr auto 1fr;gap:6px 10px;font-size:14px;align-items:center}
+.cmp .a{text-align:right}
+.cmp .mid{color:var(--mut);font-size:12px;text-align:center}
+.win{color:var(--good);font-weight:700}
+#load{position:fixed;inset:0;background:rgba(0,0,0,.8);display:none;place-items:center;text-align:center;z-index:9;padding:20px}
+#load.on{display:grid}
+.spin{width:44px;height:44px;border:4px solid var(--line);border-top-color:var(--gold);border-radius:50%;animation:s 1s linear infinite;margin:0 auto 14px}
+@keyframes s{to{transform:rotate(360deg)}}
+#err{background:#3a1713;border:1px solid #7a2a22;color:#ffb4aa;padding:12px;border-radius:12px;margin-bottom:12px;display:none;font-size:14px}
+.hidden{display:none}
+</style>
+</head>
+<body>
+<div class="wrap">
+  <header>
+    <h1>ГРИВА<span> ·</span> ЛЕВ-МЕТР</h1>
+    <p class="tag">Оценка лица по шкале луксмакса · сходство со львом · батл «кто кого могнет»</p>
+  </header>
+
+  <div class="tabs">
+    <button class="tab on" data-tab="solo">Анализ</button>
+    <button class="tab" data-tab="battle">Батл</button>
+  </div>
+
+  <div id="err"></div>
+
+  <section id="solo">
+    <div class="card">
+      <label class="drop" id="drop1">
+        <input type="file" accept="image/*" id="f1">
+        <div class="big">📸</div>
+        <div><b>Загрузи фото анфас</b></div>
+        <div class="note">Лицо прямо, хороший свет, без очков и сильного наклона головы</div>
+      </label>
+      <img id="prev1" class="thumb hidden" alt="">
+      <button class="btn" id="go1" disabled>Анализировать</button>
+    </div>
+    <div id="out1"></div>
+  </section>
+
+  <section id="battle" class="hidden">
+    <div class="row">
+      <div class="card">
+        <input type="text" id="n1" value="Боец 1" maxlength="20">
+        <label class="drop"><input type="file" accept="image/*" id="b1"><div class="big">🦁</div><div>Фото 1</div></label>
+        <img id="bp1" class="thumb hidden" alt="">
+      </div>
+      <div class="card">
+        <input type="text" id="n2" value="Боец 2" maxlength="20">
+        <label class="drop"><input type="file" accept="image/*" id="b2"><div class="big">🦁</div><div>Фото 2</div></label>
+        <img id="bp2" class="thumb hidden" alt="">
+      </div>
+    </div>
+    <button class="btn" id="go2" disabled>Начать батл ⚔️</button>
+    <div id="out2" style="margin-top:14px"></div>
+  </section>
+
+  <p class="note" style="margin-top:24px">
+    🔒 Фото не загружаются на сервер — всё считается в твоём браузере. Сервис для 18+ и чисто развлекательный: оценка основана только на геометрии лица по одному фото (без кожи, мимики, роста, харизмы и тому подобного) и не является объективной мерой внешности. Углы камеры, объектив и свет сильно меняют цифры.
+  </p>
+</div>
+
+<div id="load"><div><div class="spin"></div><div id="loadtxt">Загружаю нейросеть (один раз, около 10 МБ)…</div></div></div>
+
+<script type="module">
+import { FilesetResolver, FaceLandmarker, ImageSegmenter } from "https://cdn.jsdelivr.net/npm/@mediapipe/tasks-vision@0.10.14/vision_bundle.mjs";
+
+const $ = s => document.querySelector(s);
+const WASM = "https://cdn.jsdelivr.net/npm/@mediapipe/tasks-vision@0.10.14/wasm";
+const FACE_MODEL = "https://storage.googleapis.com/mediapipe-models/face_landmarker/face_landmarker/float16/1/face_landmarker.task";
+const HAIR_MODEL = "https://storage.googleapis.com/mediapipe-models/image_segmenter/hair_segmenter/float32/latest/hair_segmenter.tflite";
+
+const TIERS = [
+  {n:"Sub-5", min:0,   c:"#8d8d8d"},
+  {n:"LTN",   min:3,   c:"#b98a5a"},
+  {n:"MTN",   min:4,   c:"#c9b25a"},
+  {n:"HTN",   min:5,   c:"#9ccf5a"},
+  {n:"Chadlite", min:6, c:"#4fc98a"},
+  {n:"Chad",  min:6.5, c:"#3fb6d8"},
+  {n:"Gigachad", min:7.5, c:"#a77bff"},
+  {n:"Adam",  min:8,   c:"#ffd24a"}
+];
+const LIONS = [
+  [0,"Домашний котёнок 🐱"],[35,"Рысь 🐈"],[48,"Леопард 🐆"],[60,"Молодой лев 🦁"],[72,"Лев 🦁"],[84,"Король саванны 👑🦁"]
+];
+
+const tierOf = p => TIERS.slice().reverse().find(t => p >= t.min);
+const lionOf = p => LIONS.slice().reverse().find(l => p >= l[0])[1];
+const gauss = (x, c, s) => 100 * Math.exp(-0.5 * ((x - c) / s) ** 2);
+const clamp = (x, a, b) => Math.max(a, Math.min(b, x));
+
+/* ---------- models ---------- */
+let landmarker = null, segmenter = null, initP = null;
+async function make(creator, fs, path, extra) {
+  try { return await creator(fs, {baseOptions:{modelAssetPath:path, delegate:"GPU"}, ...extra}); }
+  catch (e) { return await creator(fs, {baseOptions:{modelAssetPath:path, delegate:"CPU"}, ...extra}); }
+}
+function init() {
+  if (!initP) initP = (async () => {
+    const fs = await FilesetResolver.forVisionTasks(WASM);
+    landmarker = await make(o => FaceLandmarker.createFromOptions(fs, o), fs, FACE_MODEL, {runningMode:"IMAGE", numFaces:1});
+    try {
+      segmenter = await make(o => ImageSegmenter.createFromOptions(fs, o), fs, HAIR_MODEL, {runningMode:"IMAGE", outputCategoryMask:true, outputConfidenceMasks:false});
+    } catch (e) { segmenter = null; console.warn("hair segmenter unavailable", e); }
+  })();
+  return initP;
+}
+
+/* ---------- helpers ---------- */
+function showErr(m) { const e = $("#err"); e.textContent = m; e.style.display = m ? "block" : "none"; if (m) e.scrollIntoView({behavior:"smooth",block:"center"}); }
+function loading(on, t) { $("#load").classList.toggle("on", on); if (t) $("#loadtxt").textContent = t; }
+
+async function loadCanvas(file) {
+  let bmp;
+  try { bmp = await createImageBitmap(file); }
+  catch (e) { throw new Error("Не удалось открыть фото. Попробуй JPG или PNG (HEIC из iPhone лучше сохранить как JPG)."); }
+  const k = Math.min(1, 1024 / Math.max(bmp.width, bmp.height));
+  const c = document.createElement("canvas");
+  c.width = Math.round(bmp.width * k); c.height = Math.round(bmp.height * k);
+  c.getContext("2d").drawImage(bmp, 0, 0, c.width, c.height);
+  return c;
+}
+
+/* ---------- analysis ---------- */
+function analyze(c) {
+  const res = landmarker.detect(c);
+  if (!res.faceLandmarks || !res.faceLandmarks.length) throw new Error("Лицо не найдено. Загрузи чёткое фото анфас, где лицо хорошо видно.");
+  const W = c.width, H = c.height;
+  const raw = res.faceLandmarks[0].map(p => ({x: p.x * W, y: p.y * H}));
+
+  // выравниваем наклон головы по линии глаз
+  const mid2 = (a, b) => ({x:(raw[a].x+raw[b].x)/2, y:(raw[a].y+raw[b].y)/2});
+  const eR = mid2(33,133), eL = mid2(263,362);
+  const ang = Math.atan2(eL.y - eR.y, eL.x - eR.x);
+  const cx = (eR.x + eL.x) / 2, cy = (eR.y + eL.y) / 2;
+  const cs = Math.cos(-ang), sn = Math.sin(-ang);
+  const p = raw.map(q => ({x: cx + (q.x-cx)*cs - (q.y-cy)*sn, y: cy + (q.x-cx)*sn + (q.y-cy)*cs}));
+  const d = (a, b) => Math.hypot(p[a].x - p[b].x, p[a].y - p[b].y);
+
+  const faceW = d(234, 454);
+  const fwhr = faceW / d(9, 0);
+  const faceRatio = faceW / d(10, 152);
+  const jawRatio = d(172, 397) / faceW;
+  const gonial = (a, chin, ear) => {
+    const v1 = {x:p[chin].x-p[a].x, y:p[chin].y-p[a].y}, v2 = {x:p[ear].x-p[a].x, y:p[ear].y-p[a].y};
+    return Math.acos(clamp((v1.x*v2.x+v1.y*v2.y)/(Math.hypot(v1.x,v1.y)*Math.hypot(v2.x,v2.y)),-1,1)) * 180 / Math.PI;
+  };
+  const jawAngle = (gonial(172,152,234) + gonial(397,152,454)) / 2;
+  const lowMid = d(2,152) / d(9,2);
+  const tilt = (o, i) => Math.atan2(p[i].y - p[o].y, Math.abs(p[o].x - p[i].x)) * 180 / Math.PI;
+  const canthal = (tilt(33,133) + tilt(263,362)) / 2;
+  const eyeW = (d(33,133) + d(263,362)) / 2;
+  const eyeSpacing = d(133,362) / eyeW;
+  const eyeOpen = (d(159,145)/d(33,133) + d(386,374)/d(263,362)) / 2;
+  const browGap = (d(105,159)/d(33,133) + d(334,386)/d(263,362)) / 2;
+  const noseW = d(129,358) / d(133,362);
+
+  // симметрия
+  const midX = (p[10].x + p[9].x + p[2].x + p[0].x + p[152].x) / 5;
+  const pairs = [[33,263],[133,362],[234,454],[61,291],[129,358],[172,397],[105,334],[70,300],[159,386],[145,374],[93,323],[58,288]];
+  let s = 0;
+  pairs.forEach(([a,b]) => { s += Math.abs((midX - p[a].x) - (p[b].x - midX)) + Math.abs(p[a].y - p[b].y); });
+  const asym = s / pairs.length / faceW;
+  const sym = clamp(100 * Math.exp(-asym / 0.1), 0, 100);
+  const yaw = (d(1,234) - d(1,454)) / faceW;
+
+  const F = [
+    {name:"Симметрия лица", val:sym.toFixed(0)+"/100", a:sym, aw:20, l:sym, lw:6,
+      good:"Лицо очень симметрично — большой плюс.", bad:"Заметная асимметрия (часть — от ракурса и мимики). Снимай строго анфас с нейтральным лицом."},
+    {name:"Ширина лица (fWHR)", val:fwhr.toFixed(2), a:gauss(fwhr,2.0,0.25), aw:8, l:gauss(fwhr,2.25,0.25), lw:25,
+      good:"Широкое мощное лицо — маскулинный «львиный» каркас.", bad:"Лицо более узкое/вытянутое. Борода/стрижка по бокам и объём на висках добавляют ширины."},
+    {name:"Ширина челюсти", val:(jawRatio*100).toFixed(0)+"% от скул", a:gauss(jawRatio,0.82,0.07), aw:12, l:gauss(jawRatio,0.88,0.07), lw:15,
+      good:"Мощная челюсть относительно скул.", bad:"Челюсть узковата относительно скул. Помогут щетина/борода, меньше жира на лице, жевательные мышцы."},
+    {name:"Угол челюсти (прибл.)", val:jawAngle.toFixed(0)+"°", a:gauss(jawAngle,130,14), aw:10, l:0, lw:0,
+      good:"Чёткий угол нижней челюсти.", bad:"Угол челюсти мягковат. Снижение процента жира сильно меняет картину."},
+    {name:"Пропорции третей", val:"низ/середина = "+lowMid.toFixed(2), a:gauss(lowMid,1.05,0.2), aw:10, l:0, lw:0,
+      good:"Нижняя и средняя треть лица гармоничны.", bad:"Дисбаланс третей лица. Стрижка и борода визуально выравнивают пропорции."},
+    {name:"Кантальный наклон", val:(canthal>=0?"+":"")+canthal.toFixed(1)+"°", a:gauss(canthal,5,4), aw:14, l:gauss(canthal,3,5), lw:8,
+      good:"Положительный наклон глаз — «hunter»-взгляд.", bad:"Нейтральный/отрицательный наклон. Ухоженные брови и мимика (меньше «усталости») смягчают эффект."},
+    {name:"Расстояние между глазами", val:eyeSpacing.toFixed(2)+" ширины глаза", a:gauss(eyeSpacing,1.0,0.12), aw:8, l:0, lw:0,
+      good:"Глаза посажены идеально — примерно «пять глаз в ширину».", bad:eyeSpacing>1?"Глаза посажены широковато.":"Глаза посажены близковато."},
+    {name:"Раскрытость глаз", val:eyeOpen.toFixed(2), a:gauss(eyeOpen,0.30,0.07), aw:4, l:gauss(eyeOpen,0.26,0.07), lw:8,
+      good:"Глаза в «хищной» норме.", bad:eyeOpen>0.3?"Глаза очень открытые (зависит от выражения лица).":"Глаза прищурены или сильно «нависшие» — может быть ракурс."},
+    {name:"Посадка бровей", val:browGap.toFixed(2), a:gauss(browGap,0.7,0.2), aw:6, l:gauss(browGap,0.5,0.2), lw:15,
+      good:"Низкая тяжёлая бровная линия — львиный взгляд исподлобья.", bad:"Брови высоко над глазами. Тяжелее взгляд делают плотные прямые брови."},
+    {name:"Ширина носа", val:noseW.toFixed(2)+" от межглазья", a:gauss(noseW,1.0,0.15), aw:6, l:gauss(noseW,1.15,0.15), lw:15,
+      good:"Широкий выраженный нос — львиная черта.", bad:"Нос узкий, у льва он заметно шире."},
+    {name:"Общая форма лица", val:"ширина/высота = "+faceRatio.toFixed(2), a:0, aw:0, l:gauss(faceRatio,0.92,0.07), lw:14,
+      good:"Широкая «квадратная» форма — как у льва.", bad:"Лицо более вытянутое/овальное."}
+  ];
+
+  const looksF = F.filter(f => f.aw > 0);
+  const raw100 = looksF.reduce((a,f)=>a+f.a*f.aw,0) / looksF.reduce((a,f)=>a+f.aw,0);
+  const psl = clamp(2.5 + (raw100 - 40) / 60 * 5.5, 1, 8.5);
+
+  const lionF = F.filter(f => f.lw > 0);
+  const lionRaw = lionF.reduce((a,f)=>a+f.l*f.lw,0) / lionF.reduce((a,f)=>a+f.lw,0);
+
+  // рамка лица для кропа
+  const xs = raw.map(q=>q.x), ys = raw.map(q=>q.y);
+  const box = {x0:Math.min(...xs), x1:Math.max(...xs), y0:Math.min(...ys), y1:Math.max(...ys)};
+  return {raw, F, psl, lionRaw, yaw, box, faceW, W, H};
+}
+
+function hairAnalysis(c, raw) {
+  if (!segmenter) return null;
+  try {
+    const r = segmenter.segment(c);
+    const m = r.categoryMask;
+    const a = m.getAsUint8Array();
+    const mw = m.width, mh = m.height, sx = mw / c.width, sy = mh / c.height;
+    const cnt = (x0,y0,x1,y1) => {
+      x0=Math.max(0,Math.floor(x0*sx)); x1=Math.min(mw,Math.ceil(x1*sx));
+      y0=Math.max(0,Math.floor(y0*sy)); y1=Math.min(mh,Math.ceil(y1*sy));
+      let n=0,t=0;
+      for (let y=y0;y<y1;y++) for (let x=x0;x<x1;x++){t++; if(a[y*mw+x]>0) n++;}
+      return t>50 ? n/t : null;
+    };
+    const fl=Math.min(raw[234].x,raw[454].x), fr=Math.max(raw[234].x,raw[454].x);
+    const top=raw[10].y, chin=raw[152].y, fw=fr-fl, fh=chin-top;
+    const topCov = cnt(fl-0.05*fw, top-0.5*fh, fr+0.05*fw, top);
+    const sl = cnt(fl-0.45*fw, top, fl, chin), sr = cnt(fr, top, fr+0.45*fw, chin);
+    const sideCov = (sl!==null && sr!==null) ? (sl+sr)/2 : (sl ?? sr);
+    const foreCov = cnt(Math.min(raw[70].x,raw[300].x), top, Math.max(raw[70].x,raw[300].x), raw[9].y - 0.05*fh);
+    r.close && r.close();
+    return {topCov: topCov ?? 0, sideCov: sideCov ?? 0, foreCov: foreCov ?? 0};
+  } catch (e) { console.warn(e); return null; }
+}
+
+function hairReport(h, A) {
+  if (!h) return {style:"Не удалось распознать причёску на этом фото.", tips:[], bonus:0};
+  let style;
+  if (h.topCov < 0.15 && h.sideCov < 0.12) style = "Очень короткая стрижка или бритая голова";
+  else if (h.sideCov > 0.4) style = "Длинные волосы (ниже линии скул)";
+  else if (h.foreCov > 0.3) style = "Чёлка или волосы на лбу";
+  else if (h.topCov > 0.55) style = "Объёмный верх (квифф, помпадур, пышная причёска)";
+  else style = "Короткая / средняя классическая стрижка";
+
+  const tips = [];
+  const fw = A.F.find(f => f.name.startsWith("Ширина лица"));
+  const jaw = A.F.find(f => f.name === "Ширина челюсти");
+  const form = A.F.find(f => f.name === "Общая форма лица");
+  if (h.foreCov > 0.3) tips.push("Волосы закрывают лоб: если хочешь «львиный» тяжёлый взгляд, оставь чёлку; если нужна открытость — зачесать назад.");
+  if (form.l < 45 || fw.a < 45) tips.push("Лицо вытянутое — боковые объёмы (текстура на висках, небольшая длина по бокам) добавят ширины.");
+  if (jaw.a < 50) tips.push("Для челюсти: короткие виски (fade) и объём сверху смещают акцент вниз, на линию челюсти. Плюс короткая борода.");
+  if (h.topCov < 0.25 && h.sideCov < 0.25) tips.push("Мало объёма сверху — текстурный верх 5–7 см с матовой пастой даст более мужской силуэт.");
+  if (A.lionRaw > 60) tips.push("Лев-вайб: можно сыграть на нём — густая грива назад или текстурная длина + борода по скулам.");
+  if (!tips.length) tips.push("Причёска сейчас не вредит пропорциям. Главное — аккуратная линия висков и шеи.");
+  const bonus = Math.min(8, Math.round((h.sideCov*14 + h.topCov*6)));
+  return {style, tips, bonus,
+    vol: Math.round(h.topCov*100), side: Math.round(h.sideCov*100), fore: Math.round(h.foreCov*100)};
+}
+
+function drawOverlay(c, A) {
+  const o = document.createElement("canvas"); o.width = c.width; o.height = c.height;
+  const g = o.getContext("2d"); g.drawImage(c, 0, 0);
+  const r = A.raw, lw = Math.max(2, c.width/300);
+  g.lineWidth = lw; g.strokeStyle = "rgba(255,217,138,.9)"; g.fillStyle = "#ffd98a";
+  const jaw = [234,93,132,58,172,136,150,149,176,148,152,377,400,378,379,365,397,288,361,323,454];
+  g.beginPath(); jaw.forEach((i,k)=>k?g.lineTo(r[i].x,r[i].y):g.moveTo(r[i].x,r[i].y)); g.stroke();
+  [[33,133],[263,362]].forEach(([a,b])=>{g.beginPath();g.moveTo(r[a].x,r[a].y);g.lineTo(r[b].x,r[b].y);g.stroke();});
+  g.setLineDash([lw*3,lw*3]); g.strokeStyle = "rgba(255,255,255,.55)";
+  [10,9,2,152].forEach(i=>{g.beginPath();g.moveTo(r[234].x-10,r[i].y);g.lineTo(r[454].x+10,r[i].y);g.stroke();});
+  g.setLineDash([]);
+  [33,133,263,362,129,358,172,397,152,10,9,2].forEach(i=>{g.beginPath();g.arc(r[i].x,r[i].y,lw*1.4,0,7);g.fill();});
+  return o;
+}
+
+async function fullAnalysis(file) {
+  const c = await loadCanvas(file);
+  const A = analyze(c);
+  const h = hairAnalysis(c, A.raw);
+  const H = hairReport(h, A);
+  A.hair = H;
+  A.lion = Math.round(clamp(A.lionRaw * 0.9 + H.bonus, 1, 99));
+  A.tier = tierOf(A.psl);
+  A.canvas = c;
+  A.overlay = drawOverlay(c, A);
+  return A;
+}
+
+/* ---------- render ---------- */
+function ringStyle(pct) { return `background:conic-gradient(var(--gold) ${pct*3.6}deg,var(--card2) 0)`; }
+function renderResult(A) {
+  const pos = clamp(A.psl / 9 * 100, 1, 99);
+  const warn = Math.abs(A.yaw) > 0.12 ? `<p class="note" style="color:var(--bad)">⚠️ Лицо повёрнуто — цифры могут быть неточными. Для чистого результата сними строго анфас.</p>` : "";
+  const feats = A.F.map(f => {
+    const sc = Math.round(f.a || f.l);
+    const txt = sc >= 70 ? f.good : sc >= 45 ? "В пределах нормы." : f.bad;
+    const col = sc >= 70 ? "var(--good)" : sc >= 45 ? "var(--gold)" : "var(--bad)";
+    return `<div class="feat"><div class="fh"><b>${f.name}</b><span>${f.val}</span></div>
+      <div class="bar"><i style="width:${sc}%;background:${col}"></i></div><div class="fn">${txt}</div></div>`;
+  }).join("");
+  const hr = A.hair;
+  const hairBlock = hr.vol !== undefined
+    ? `<p><b>${hr.style}</b></p><p class="note">Объём сверху: ${hr.vol}% · по бокам: ${hr.side}% · закрытие лба: ${hr.fore}%</p>`
+    : `<p><b>${hr.style}</b></p>`;
+  return `
+  <div class="card"><img class="thumb" id="ovl" alt=""><p class="note" style="margin:8px 0 0">Линии — ключевые точки, по которым считались пропорции.</p></div>
+  <div class="card">
+    <div class="score"><div class="n">${A.psl.toFixed(1)}<small>/10</small></div>
+      <div class="badge" style="background:${A.tier.c}">${A.tier.n}</div></div>
+    <div class="scale">${TIERS.map(t=>`<div style="background:${t.c}"></div>`).join("")}<span class="mark" style="left:${pos}%"></span></div>
+    <div class="labels">${TIERS.map(t=>`<div>${t.n}</div>`).join("")}</div>
+    ${warn}
+  </div>
+  <div class="card"><h3>🦁 Сходство со львом</h3>
+    <div class="lion"><div class="ring" style="${ringStyle(A.lion)}"><i>${A.lion}%</i></div>
+    <div><b style="font-size:18px">${lionOf(A.lion)}</b><div class="note">Считается по широкому лицу, тяжёлой челюсти, низким бровям, широкому носу и «гриве».</div></div></div></div>
+  <div class="card"><h3>Разбор лица</h3>${feats}</div>
+  <div class="card"><h3>💇 Причёска</h3>${hairBlock}${hr.tips.map(t=>`<p class="fn">• ${t}</p>`).join("")}</div>
+  <button class="btn" id="saveSolo">Сохранить карточку-картинку</button>`;
+}
+
+/* ---------- share card ---------- */
+function makeCard(items, title) {
+  const W = 1080, Hh = 1350, c = document.createElement("canvas"); c.width = W; c.height = Hh;
+  const g = c.getContext("2d");
+  const bg = g.createLinearGradient(0,0,0,Hh); bg.addColorStop(0,"#2a1d0c"); bg.addColorStop(1,"#0e0b08");
+  g.fillStyle = bg; g.fillRect(0,0,W,Hh);
+  g.textAlign = "center"; g.fillStyle = "#e8b04a"; g.font = "800 54px system-ui,sans-serif"; g.fillText("ГРИВА · ЛЕВ-МЕТР", W/2, 90);
+  g.fillStyle = "#f3ece0"; g.font = "700 40px system-ui,sans-serif"; g.fillText(title, W/2, 150);
+  const n = items.length, pw = W / n;
+  items.forEach((it, i) => {
+    const A = it.A, cxm = pw*i + pw/2, size = Math.min(pw - 60, 760);
+    const b = A.box, pad = (b.x1-b.x0)*0.35;
+    let sx = b.x0-pad, sy = b.y0-pad, sw = (b.x1-b.x0)+pad*2, sh = sw;
+    sy = (b.y0+b.y1)/2 - sh/2; sx = Math.max(0, Math.min(A.W - sw, sx)); sy = Math.max(0, Math.min(A.H - sh, sy));
+    if (sw > A.W) { sw = A.W; sx = 0; } if (sh > A.H) { sh = A.H; sy = 0; }
+    const m = Math.min(sw, sh);
+    g.save(); g.beginPath(); g.roundRect(cxm-size/2, 220, size, size, 28); g.clip();
+    g.drawImage(A.canvas, sx, sy, m, m, cxm-size/2, 220, size, size); g.restore();
+    g.strokeStyle = it.win ? "#ffd24a" : "#35291b"; g.lineWidth = 6; g.beginPath(); g.roundRect(cxm-size/2, 220, size, size, 28); g.stroke();
+    const y = 220 + size + 90;
+    g.fillStyle = "#f3ece0"; g.font = "700 38px system-ui,sans-serif"; g.fillText(it.name, cxm, y);
+    g.fillStyle = "#e8b04a"; g.font = "800 90px system-ui,sans-serif"; g.fillText(A.psl.toFixed(1), cxm, y+95);
+    g.fillStyle = A.tier.c; g.font = "800 44px system-ui,sans-serif"; g.fillText(A.tier.n, cxm, y+155);
+    g.fillStyle = "#ffd98a"; g.font = "600 34px system-ui,sans-serif"; g.fillText("🦁 " + A.lion + "% льва", cxm, y+210);
+  });
+  g.fillStyle = "#a09482"; g.font = "24px system-ui,sans-serif"; g.fillText("Развлекательная оценка по геометрии лица · 18+", W/2, Hh-40);
+  return c;
+}
+function downloadCanvas(c, name) {
+  c.toBlob(b => { const a = document.createElement("a"); a.href = URL.createObjectURL(b); a.download = name; a.click(); setTimeout(()=>URL.revokeObjectURL(a.href), 5000); }, "image/png");
+}
+
+/* ---------- solo ---------- */
+let file1 = null;
+$("#f1").onchange = e => { file1 = e.target.files[0]; if (!file1) return; const im = $("#prev1"); im.src = URL.createObjectURL(file1); im.classList.remove("hidden"); $("#drop1").classList.add("hidden"); $("#go1").disabled = false; $("#out1").innerHTML = ""; showErr(""); };
+$("#go1").onclick = async () => {
+  showErr(""); $("#go1").disabled = true; loading(true, "Загружаю нейросеть (один раз, около 10 МБ)…");
+  try {
+    await init(); loadingText("Анализирую лицо…");
+    const A = await fullAnalysis(file1);
+    $("#out1").innerHTML = renderResult(A);
+    $("#ovl").src = A.overlay.toDataURL("image/jpeg", 0.9);
+    $("#saveSolo").onclick = () => downloadCanvas(makeCard([{name:"Мой результат", A}], "Лев-метр"), "griva-result.png");
+    $("#out1").scrollIntoView({behavior:"smooth"});
+  } catch (e) { showErr(e.message || "Ошибка анализа"); }
+  loading(false); $("#go1").disabled = false;
+};
+function loadingText(t) { $("#loadtxt").textContent = t; }
+
+/* ---------- battle ---------- */
+const bf = [null, null];
+[["#b1","#bp1",0],["#b2","#bp2",1]].forEach(([inp, pv, i]) => {
+  $(inp).onchange = e => { bf[i] = e.target.files[0]; if (!bf[i]) return; const im = $(pv); im.src = URL.createObjectURL(bf[i]); im.classList.remove("hidden"); e.target.closest(".drop").classList.add("hidden"); $("#go2").disabled = !(bf[0] && bf[1]); showErr(""); };
+});
+$("#go2").onclick = async () => {
+  showErr(""); $("#go2").disabled = true; loading(true, "Загружаю нейросеть (один раз, около 10 МБ)…");
+  try {
+    await init(); loadingText("Идёт батл…");
+    const [A, B] = [await fullAnalysis(bf[0]), await fullAnalysis(bf[1])];
+    const n1 = $("#n1").value.trim() || "Боец 1", n2 = $("#n2").value.trim() || "Боец 2";
+    const diff = A.psl - B.psl, ldiff = A.lion - B.lion;
+    let verdict, winIdx = -1;
+    if (Math.abs(diff) < 0.25) verdict = "🤝 Ничья по лицу";
+    else { winIdx = diff > 0 ? 0 : 1; verdict = `🏆 ${winIdx===0?n1:n2} могнет ${winIdx===0?n2:n1}`; }
+    let lionV;
+    if (Math.abs(ldiff) < 3) lionV = "Оба одинаково «львы»";
+    else lionV = `🦁 Больше льва: ${ldiff>0?n1:n2} (+${Math.abs(ldiff)}%)`;
+    const rows = A.F.map((f, i) => {
+      const a = Math.round(f.a || f.l), b = Math.round(B.F[i].a || B.F[i].l);
+      return `<div class="a ${a>b?"win":""}">${a}</div><div class="mid">${f.name}</div><div class="${b>a?"win":""}">${b}</div>`;
+    }).join("");
+    $("#out2").innerHTML = `
+      <div class="card winner"><div class="t">${verdict}</div>
+        <p>${n1}: <b>${A.psl.toFixed(1)}</b> (${A.tier.n}) · ${n2}: <b>${B.psl.toFixed(1)}</b> (${B.tier.n})</p>
+        <p class="note">Разница: ${Math.abs(diff).toFixed(1)} · ${lionV}</p></div>
+      <div class="row"><div class="card"><img class="thumb" src="${A.overlay.toDataURL("image/jpeg",0.85)}"></div><div class="card"><img class="thumb" src="${B.overlay.toDataURL("image/jpeg",0.85)}"></div></div>
+      <div class="card"><h3>Раунды по параметрам</h3><div class="cmp"><div class="a"><b>${n1}</b></div><div></div><div><b>${n2}</b></div>${rows}</div></div>
+      <button class="btn" id="saveB">Сохранить карточку батла</button>`;
+    $("#saveB").onclick = () => downloadCanvas(makeCard([{name:n1,A,win:winIdx===0},{name:n2,A:B,win:winIdx===1}], verdict.replace(/[🏆🤝]/gu,"").trim()), "griva-battle.png");
+    $("#out2").scrollIntoView({behavior:"smooth"});
+  } catch (e) { showErr(e.message || "Ошибка батла"); }
+  loading(false); $("#go2").disabled = !(bf[0] && bf[1]);
+};
+
+/* ---------- tabs ---------- */
+document.querySelectorAll(".tab").forEach(t => t.onclick = () => {
+  document.querySelectorAll(".tab").forEach(x => x.classList.toggle("on", x === t));
+  $("#solo").classList.toggle("hidden", t.dataset.tab !== "solo");
+  $("#battle").classList.toggle("hidden", t.dataset.tab !== "battle");
+  showErr("");
+});
+</script>
+</body>
+</html>
