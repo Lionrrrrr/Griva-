@@ -147,8 +147,8 @@ const clamp = (x, a, b) => Math.max(a, Math.min(b, x));
 /* ---------- models ---------- */
 let landmarker = null, segmenter = null, initP = null;
 async function make(creator, fs, path, extra) {
-  try { return await creator(fs, {baseOptions:{modelAssetPath:path, delegate:"GPU"}, ...extra}); }
-  catch (e) { return await creator(fs, {baseOptions:{modelAssetPath:path, delegate:"CPU"}, ...extra}); }
+    try { return await creator({baseOptions:{modelAssetPath:path, delegate:"GPU"}, ...extra}); }
+  catch (e) { return await creator({baseOptions:{modelAssetPath:path, delegate:"CPU"}, ...extra}); }
 }
 function init() {
   if (!initP) initP = (async () => {
